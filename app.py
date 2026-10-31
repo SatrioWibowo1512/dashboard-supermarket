@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 
-st.title("Dashboard Penjualan Supermarket 🛒")
+st.title("Dashboard Penjualan Supermarket")
 df = pd.read_csv('SuperMarket Analysis.csv')
 
 # Filter
