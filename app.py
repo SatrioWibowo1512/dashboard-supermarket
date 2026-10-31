@@ -16,7 +16,6 @@ try:
     with st.expander("Klik untuk lihat sampel data mentah"):
         st.table(df.head())
 
-    # Baris ini yang mengubah Branch menjadi kolom utuh agar bisa diwarnai
     penjualan_cabang = df.groupby('Branch')['Sales'].sum().reset_index()
     
     st.subheader("Total Pendapatan per Cabang")
