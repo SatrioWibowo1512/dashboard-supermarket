@@ -19,9 +19,3 @@ col2.metric("Total Transaksi", len(df_filter))
 penjualan_cabang = df_filter.groupby('Branch')['Sales'].sum().reset_index()
 st.subheader("Pendapatan per Cabang")
 st.bar_chart(penjualan_cabang, x='Branch', y='Sales', color='Branch')
-    
-    st.subheader("Total Pendapatan per Cabang")
-    st.bar_chart(penjualan_cabang, x='Branch', y='Sales', color='Branch')
-    
-except FileNotFoundError:
-    st.error("File CSV tidak terbaca.")
