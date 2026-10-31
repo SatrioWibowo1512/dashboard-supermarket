@@ -10,11 +10,19 @@ st.markdown("Comprehensive analysis of sales performance, customer demographics,
 def load_data():
     df = pd.read_csv('SuperMarket Analysis.csv')
     df['Date'] = pd.to_datetime(df['Date'])
-    # Hour and Date Extract
-    df['Hour'] = df['Time'].str.split(':').str[0].astype(int)
-    df['Day_Name'] = df['Date'].dt.day_name()
-    return df
 
+    # HOUR FORMATTING (Mengubah format AM/PM ke format 24 jam HH:00)
+    df['Time_dt'] = pd.to_datetime(df['Time'], format='%I:%M:%S %p', errors='coerce')
+    df['Hour'] = df['Time_dt'].dt.hour
+    df['Hour_Label'] = df['Hour'].apply(lambda x: f"{x:02d}:00")
+    
+    # EXTRACT DAY NAME (Disusun berurutan Senin -> Minggu)
+    df['Day_Name'] = df['Date'].dt.day_name()
+    days_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    df['Day_Name'] = pd.Categorical(df['Day_Name'], categories=days_order, ordered=True)
+
+    return df
+    
 df = load_data()
 
 # SIDEBAR FILTER
@@ -44,6 +52,11 @@ payment_filter = st.sidebar.multiselect(
     default=df['Payment'].unique()
 )
 
+st.sidebar.markdown("---")
+st.sidebar.header("Chart Metric View")
+metric_choice = st.sidebar.radio("Display Charts By:", ["Sales ($)", "Quantity (Units)"])
+metric_col = "Sales" if metric_choice == "Sales ($)" else "Quantity"
+
 # APPLY ALL FILTERS TO DATAFRAME
 df_filtered = df[
     (df['City'].isin(city_filter)) &
@@ -72,56 +85,63 @@ tab1, tab2, tab3 = st.tabs([
 
 # TAB 1: SALES, CITY, CATEGORY, & TIME
 with tab1:
-    st.subheader("Overview & Product Performance")
+    st.subheader(f"Overview & Product Performance ({metric_choice})")
     col_a, col_b = st.columns(2)
     
     with col_a:
-        st.markdown("Sales Revenue by City")
-        city_sales = df_filtered.groupby('City')['Sales'].sum().reset_index()
-        st.bar_chart(city_sales, x='City', y='Sales', color='City')
+        st.markdown(f"**{metric_choice} by City**")
+        city_sales = df_filtered.groupby('City')[metric_col].sum().reset_index()
+        st.bar_chart(city_sales, x='City', y=metric_col, color='City')
 
     with col_b:
-        st.markdown("**Sales Revenue by Product Category**")
-        product_sales = df_filtered.groupby('Product line')['Sales'].sum().reset_index()
-        st.bar_chart(product_sales, x='Product line', y='Sales', color='Product line')
+        st.markdown(f"**{metric_choice} by Product Category**")
+        product_sales = df_filtered.groupby('Product line')[metric_col].sum().reset_index()
+        st.bar_chart(product_sales, x='Product line', y=metric_col, color='Product line')
 
     st.markdown("---")
-    st.subheader("Time Trend Analysis")
-    col_c, col_d = st.columns(2)
+    st.subheader(f"Time Trend Analysis ({metric_choice})")
+    col_c, col_d, col_e = st.columns(3)
     
     with col_c:
-        st.markdown("Hourly Sales Trend (Peak Hours)")
-        hourly_sales = df_filtered.groupby('Hour')['Sales'].sum().reset_index()
-        st.line_chart(hourly_sales, x='Hour', y='Sales')
+        st.markdown("**Hourly Trend (Operating Hours 10:00 - 20:00)**")
+        # Menggunakan Hour_Label (format HH:00) dan metric_col
+        hourly_sales = df_filtered.groupby('Hour_Label')[metric_col].sum().reset_index()
+        st.line_chart(hourly_sales, x='Hour_Label', y=metric_col)
 
     with col_d:
-        st.markdown("**Daily Sales Trend**")
-        daily_sales = df_filtered.groupby('Date')['Sales'].sum().reset_index()
-        st.line_chart(daily_sales, x='Date', y='Sales')
+        st.markdown("**Day of Week Trend (Monday - Sunday)**")
+        # Menambahkan grafik tren berdasarkan nama hari
+        day_sales = df_filtered.groupby('Day_Name', observed=False)[metric_col].sum().reset_index()
+        st.bar_chart(day_sales, x='Day_Name', y=metric_col, color='Day_Name')
+
+    with col_e:
+        st.markdown("**Daily Timeline Trend**")
+        daily_sales = df_filtered.groupby('Date')[metric_col].sum().reset_index()
+        st.line_chart(daily_sales, x='Date', y=metric_col)
 
 # TAB 2: DEMOGRAPHICS, CUSTOMER TYPE, & PAYMENTS
 with tab2:
-    st.subheader("Customer Demographics & Payment Preferences")
-    col_e, col_f, col_g = st.columns(3)
+    st.subheader(f"Customer Demographics & Payment Preferences ({metric_choice})")
+    col_e_1, col_f_1, col_g_1 = st.columns(3)
     
-    with col_e:
-        st.markdown("Sales by Gender")
-        gender_sales = df_filtered.groupby('Gender')['Sales'].sum().reset_index()
-        st.bar_chart(gender_sales, x='Gender', y='Sales', color='Gender')
+    with col_e_1:
+        st.markdown(f"**{metric_choice} by Gender**")
+        gender_sales = df_filtered.groupby('Gender')[metric_col].sum().reset_index()
+        st.bar_chart(gender_sales, x='Gender', y=metric_col, color='Gender')
         
-    with col_f:
-        st.markdown("Sales by Customer Type (Member vs Normal)")
-        role_sales = df_filtered.groupby('Customer type')['Sales'].sum().reset_index()
-        st.bar_chart(role_sales, x='Customer type', y='Sales', color='Customer type')
+    with col_f_1:
+        st.markdown(f"**{metric_choice} by Customer Type (Member vs Normal)**")
+        role_sales = df_filtered.groupby('Customer type')[metric_col].sum().reset_index()
+        st.bar_chart(role_sales, x='Customer type', y=metric_col, color='Customer type')
 
-    with col_g:
-        st.markdown("Sales by Payment Method")
-        payment_sales = df_filtered.groupby('Payment')['Sales'].sum().reset_index()
-        st.bar_chart(payment_sales, x='Payment', y='Sales', color='Payment')
+    with col_g_1:
+        st.markdown(f"**{metric_choice} by Payment Method**")
+        payment_sales = df_filtered.groupby('Payment')[metric_col].sum().reset_index()
+        st.bar_chart(payment_sales, x='Payment', y=metric_col, color='Payment')
 
     st.markdown("---")
-    st.markdown("Product Category Choice by Customer Role")
-    cross_role_prod = df_filtered.groupby(['Product line', 'Customer type'])['Sales'].sum().unstack().fillna(0)
+    st.markdown(f"**Product Category Choice by Customer Role ({metric_choice})**")
+    cross_role_prod = df_filtered.groupby(['Product line', 'Customer type'])[metric_col].sum().unstack().fillna(0)
     st.bar_chart(cross_role_prod)
 
 # TAB 3: FINANCIALS & RATING
