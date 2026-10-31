@@ -108,12 +108,12 @@ with tab1:
     with col_a:
         st.markdown(f"**{metric_choice} by City**")
         city_data, val_col = get_aggregated_data(df_filtered, 'City')
-        st.bar_chart(city_sales, x='City', y=metric_col, color='City')
+        st.bar_chart(city_data, x='City', y=val_col, color='City')
 
     with col_b:
         st.markdown(f"**{metric_choice} by Product Category**")
         prod_data, val_col = get_aggregated_data(df_filtered, 'Product line')
-        st.bar_chart(product_sales, x='Product line', y=metric_col, color='Product line')
+        st.bar_chart(prod_data, x='Product line', y=val_col, color='Product line')
 
     st.markdown("---")
     st.subheader(f"Time Trend Analysis ({metric_choice})")
@@ -122,17 +122,17 @@ with tab1:
     with col_c:
         st.markdown("**Hourly Trend (Operating Hours 10:00 - 20:00)**")
         hour_data, val_col = get_aggregated_data(df_filtered, 'Hour_Label')
-        st.line_chart(hourly_sales, x='Hour_Label', y=metric_col)
+        st.line_chart(hour_data, x='Hour_Label', y=val_col)
 
     with col_d:
         st.markdown("**Day of Week Trend (Monday - Sunday)**")
         day_data, val_col = get_aggregated_data(df_filtered, 'Day_Name')
-        st.bar_chart(day_sales, x='Day_Name', y=metric_col, color='Day_Name')
+        st.bar_chart(day_data, x='Day_Name', y=val_col, color='Day_Name')
 
     with col_e:
         st.markdown("**Daily Timeline Trend**")
         date_data, val_col = get_aggregated_data(df_filtered, 'Date')
-        st.line_chart(daily_sales, x='Date', y=metric_col)
+        st.line_chart(date_data, x='Date', y=val_col)
 
 # TAB 2: DEMOGRAPHICS, CUSTOMER TYPE, & PAYMENTS
 with tab2:
