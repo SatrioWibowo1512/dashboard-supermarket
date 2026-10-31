@@ -65,6 +65,21 @@ df_filtered = df[
     (df['Payment'].isin(payment_filter))
 ]
 
+# HELPER FUNCTIONS FOR CONSISTENT CODE AGGREGATION
+def get_aggregated_data(df, group_by_col):
+    if metric_choice == "Sales ($)":
+        res = df.groupby(group_by_col, observed=False)['Sales'].sum().reset_index()
+        res.columns = [group_by_col, "Sales ($)"]
+        return res, "Sales ($)"
+    elif metric_choice == "Quantity (Units)":
+        res = df.groupby(group_by_col, observed=False)['Quantity'].sum().reset_index()
+        res.columns = [group_by_col, "Quantity (Units)"]
+        return res, "Quantity (Units)"
+    else:  # Transactions (Count)
+        res = df.groupby(group_by_col, observed=False)['Invoice ID'].nunique().reset_index()
+        res.columns = [group_by_col, "Transactions"]
+        return res, "Transactions"
+
 # EXECUTIVE KEY PERFORMANCE INDICATOR METRICS (COMBINE)
 st.subheader("Key Performance Indicators (KPI)")
 col1, col2, col3, col4, col5 = st.columns(5)
@@ -141,8 +156,13 @@ with tab2:
 
     st.markdown("---")
     st.markdown(f"**Product Category Choice by Customer Role ({metric_choice})**")
-    cross_role_prod = df_filtered.groupby(['Product line', 'Customer type'])[metric_col].sum().unstack().fillna(0)
-    st.bar_chart(cross_role_prod)
+    if metric_choice == "Sales ($)":
+        cross_role = df_filtered.groupby(['Product line', 'Customer type'])['Sales'].sum().unstack().fillna(0)
+    elif metric_choice == "Quantity (Units)":
+        cross_role = df_filtered.groupby(['Product line', 'Customer type'])['Quantity'].sum().unstack().fillna(0)
+    else:
+        cross_role = df_filtered.groupby(['Product line', 'Customer type'])['Invoice ID'].nunique().unstack().fillna(0)
+    st.bar_chart(cross_role)
 
 # TAB 3: FINANCIALS & RATING
 with tab3:
