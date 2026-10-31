@@ -54,7 +54,9 @@ payment_filter = st.sidebar.multiselect(
 
 st.sidebar.markdown("---")
 st.sidebar.header("Chart Metric View")
-metric_choice = st.sidebar.radio("Display Charts By:", ["Sales ($)", "Quantity (Units)"])
+metric_choice = st.sidebar.radio(
+    "Display Charts By:", 
+    ["Sales ($)", "Quantity (Units)", "Transaction (Count)"])
 metric_col = "Sales" if metric_choice == "Sales ($)" else "Quantity"
 
 # APPLY ALL FILTERS TO DATAFRAME
@@ -105,12 +107,12 @@ with tab1:
     
     with col_a:
         st.markdown(f"**{metric_choice} by City**")
-        city_sales = df_filtered.groupby('City')[metric_col].sum().reset_index()
+        city_data, val_col = get_aggregated_data(df_filtered, 'City')
         st.bar_chart(city_sales, x='City', y=metric_col, color='City')
 
     with col_b:
         st.markdown(f"**{metric_choice} by Product Category**")
-        product_sales = df_filtered.groupby('Product line')[metric_col].sum().reset_index()
+        prod_data, val_col = get_aggregated_data(df_filtered, 'Product line')
         st.bar_chart(product_sales, x='Product line', y=metric_col, color='Product line')
 
     st.markdown("---")
@@ -119,19 +121,17 @@ with tab1:
     
     with col_c:
         st.markdown("**Hourly Trend (Operating Hours 10:00 - 20:00)**")
-        # Menggunakan Hour_Label (format HH:00) dan metric_col
-        hourly_sales = df_filtered.groupby('Hour_Label')[metric_col].sum().reset_index()
+        hour_data, val_col = get_aggregated_data(df_filtered, 'Hour_Label')
         st.line_chart(hourly_sales, x='Hour_Label', y=metric_col)
 
     with col_d:
         st.markdown("**Day of Week Trend (Monday - Sunday)**")
-        # Menambahkan grafik tren berdasarkan nama hari
-        day_sales = df_filtered.groupby('Day_Name', observed=False)[metric_col].sum().reset_index()
+        day_data, val_col = get_aggregated_data(df_filtered, 'Day_Name')
         st.bar_chart(day_sales, x='Day_Name', y=metric_col, color='Day_Name')
 
     with col_e:
         st.markdown("**Daily Timeline Trend**")
-        daily_sales = df_filtered.groupby('Date')[metric_col].sum().reset_index()
+        date_data, val_col = get_aggregated_data(df_filtered, 'Date')
         st.line_chart(daily_sales, x='Date', y=metric_col)
 
 # TAB 2: DEMOGRAPHICS, CUSTOMER TYPE, & PAYMENTS
@@ -141,18 +141,18 @@ with tab2:
     
     with col_e_1:
         st.markdown(f"**{metric_choice} by Gender**")
-        gender_sales = df_filtered.groupby('Gender')[metric_col].sum().reset_index()
-        st.bar_chart(gender_sales, x='Gender', y=metric_col, color='Gender')
+        gender_data, val_col = get_aggregated_data(df_filtered, 'Gender')
+        st.bar_chart(gender_data, x='Gender', y=val_col, color='Gender')
         
     with col_f_1:
         st.markdown(f"**{metric_choice} by Customer Type (Member vs Normal)**")
-        role_sales = df_filtered.groupby('Customer type')[metric_col].sum().reset_index()
-        st.bar_chart(role_sales, x='Customer type', y=metric_col, color='Customer type')
+        role_data, val_col = get_aggregated_data(df_filtered, 'Customer type')
+        st.bar_chart(role_data, x='Customer type', y=val_col, color='Customer type')
 
     with col_g_1:
         st.markdown(f"**{metric_choice} by Payment Method**")
-        payment_sales = df_filtered.groupby('Payment')[metric_col].sum().reset_index()
-        st.bar_chart(payment_sales, x='Payment', y=metric_col, color='Payment')
+        pay_data, val_col = get_aggregated_data(df_filtered, 'Payment')
+        st.bar_chart(pay_data, x='Payment', y=val_col, color='Payment')
 
     st.markdown("---")
     st.markdown(f"**Product Category Choice by Customer Role ({metric_choice})**")
