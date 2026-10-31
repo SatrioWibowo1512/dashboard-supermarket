@@ -11,9 +11,7 @@ df = pd.read_csv('SuperMarket Analysis.csv')
 df['Date'] = pd.to_datetime(df['Date'])
 
 # MAKE HOUR AND DAY COLUMN
-df['Hour'] = pd.to_datetime(df['Time'], format='%H:%M').dt.hour
-df['Day'] = df['Date'].dt.day_name()
-
+df['Hour'] = df['Time'].str.split(':').str[0].astype(int)
 
 # SIDEBAR FILTER
 st.sidebar.header("Analysis Filter")
